@@ -112,34 +112,22 @@ public class LemmatizerVersion
 	{
         Set<Map.Entry<String, TreeMap<Long, Long>>> selement=hout.entrySet();
         Iterator<Entry<String, TreeMap<Long, Long>>> sdisplay = selement.iterator(); 
-        //LinkedList<Integer> docList = new LinkedList<Integer>();
-        //int gap,prev;
-        //long gapDelta;
         while(sdisplay.hasNext()) 
         {
         	Map.Entry<String, TreeMap<Long, Long>> mapEntryOuter = sdisplay.next();
         	Set<Map.Entry<Long, Long>> sinner= mapEntryOuter.getValue().entrySet();
             Iterator<Entry<Long, Long>> itinner = sinner.iterator();
             TreeMap<Long, Long> tempc = new TreeMap<Long, Long>();
-            //int index=0;    
             while(itinner.hasNext()) 
                 {
                      Map.Entry<Long, Long> mapEntryInner = itinner.next();
                      long key=mapEntryInner.getKey();
-                     //docList.add(index,(int)key);
-                     //index++;
                      long baKey= deltaCode((int)key);
                      long value=mapEntryInner.getValue();
                      long baValue = gammacode((int)value);
                      tempc.put(baKey, baValue);
                 }
                 v1c.put(mapEntryOuter.getKey(), tempc);
-                /* prev=docList.get(docList.size()-1);
-                for(int iCount=0;iCount<docList.size();iCount++)
-                {
-                	gap=docList.get(iCount)-prev;
-                	gapDelta=deltaCode(gap);
-                }*/
         }
     }
 	
@@ -208,14 +196,12 @@ public class LemmatizerVersion
     {
     	String path = args[0];
     	buildstartTime = System.currentTimeMillis();
-    	//File dir = new File("src/Cranfield");
     	File dir = new File(path);
     	String[] allFiles = dir.list(); 
 		LemmatizerVersion slem = new LemmatizerVersion();
 		if (allFiles == null)
 		{
 			System.out.println("no such directory");
-			// Either dir does not exist or is not a directory 
 		} 
 		else 
 		{ 
@@ -226,60 +212,59 @@ public class LemmatizerVersion
 				String filename = allFiles[i]; 
 				if(filename.startsWith("cranfield"))
 				{
-					//BufferedReader br = new BufferedReader(new FileReader("src/Cranfield/"+filename));
 					BufferedReader br = new BufferedReader(new FileReader(path+"/"+filename));
 					String docid=filename.substring(filename.length()-4);
-			        StringBuilder sb = new StringBuilder();
-			        String line;
-			        while ( (line=br.readLine()) != null) 
-			        {
-			          sb.append(" "+line);
-			        }
-			        br.close();
-			        line = sb.toString().replaceAll("\\<.*?>", "");
-			        line = line.replaceAll("[,]", " ");
-			        line = line.replaceAll("[^a-zA-Z ]", "").toLowerCase();
-			        String[] words=line.split(" ");
-			        String linetp="";
-			        for(String str : words)
-			        {
-			        	if(stopWords.contains(str) || str==null)
+			        	StringBuilder sb = new StringBuilder();
+			        	String line;
+			        	while ( (line=br.readLine()) != null) 
 			        	{
-			        		
+			        		sb.append(" "+line);
 			        	}
-			        	else
+			        	br.close();
+			        	line = sb.toString().replaceAll("\\<.*?>", "");
+			        	line = line.replaceAll("[,]", " ");
+			        	line = line.replaceAll("[^a-zA-Z ]", "").toLowerCase();
+			        	String[] words=line.split(" ");
+			        	String linetp="";
+			        	for(String str : words)
 			        	{
-			        		linetp=linetp+str+" ";
-			        	}
-			        }
-			        slem.lemmatize(linetp);
-			        for(String str : lemmas)
-			        {
-			        	long dcid=Integer.parseInt(docid);
-			        	TreeMap<Long,Long> temp=new TreeMap<Long,Long>();
-			        	if(v1.containsKey(str))
-			        	{
-			        		temp = v1.get(str);
-			        		if(temp.containsKey(dcid))
+			        		if(stopWords.contains(str) || str==null)
 			        		{
-			        			long freq = temp.get(dcid);
-			       				freq++;
-			        			temp.put(dcid, freq);
-			        			v1.put(str,temp);
+			        		
+			        		}
+			        		else
+			        		{
+			        			linetp=linetp+str+" ";
+			        		}
+			        	}
+			        	slem.lemmatize(linetp);
+			        	for(String str : lemmas)
+			        	{
+			        		long dcid=Integer.parseInt(docid);
+			        		TreeMap<Long,Long> temp=new TreeMap<Long,Long>();
+			        		if(v1.containsKey(str))
+			        		{
+			        			temp = v1.get(str);
+			        			if(temp.containsKey(dcid))
+			        			{
+			        				long freq = temp.get(dcid);
+			       					freq++;
+			        				temp.put(dcid, freq);
+			        				v1.put(str,temp);
+			       				}
+			       				else
+			       				{
+			       					temp.put(dcid, new Long (1));
+			       					v1.put(str,temp);
+			       				}
 			       			}
-			       			else
-			       			{
-			       				temp.put(dcid, new Long (1));
-			       				v1.put(str,temp);
-			       			}
-			       		}
-		        		else
-		        		{
-		        			temp.put(dcid,new Long (1));
-		        			v1.put(str, temp);
+		        			else
+		        			{
+		        				temp.put(dcid,new Long (1));
+		        				v1.put(str, temp);
+		        			}
 		        		}
-		        	}
-			        lemmas.clear();
+			        	lemmas.clear();
 				}
 			}
 		}
@@ -288,20 +273,13 @@ public class LemmatizerVersion
 		FileOutputStream file1 = new FileOutputStream("LemmatizerUncompressed.bin");
 		ObjectOutputStream os1 = new ObjectOutputStream(file1);
 		os1.writeObject(treev1);
-        slem.compress(v1); 
-        Map<String, TreeMap<Long, Long>> treev1c = new TreeMap<String,TreeMap<Long, Long>>(v1c);
-        FileOutputStream file2 = new FileOutputStream("LemmatizerCompressed.bin");
+        	slem.compress(v1); 
+        	Map<String, TreeMap<Long, Long>> treev1c = new TreeMap<String,TreeMap<Long, Long>>(v1c);
+        	FileOutputStream file2 = new FileOutputStream("LemmatizerCompressed.bin");
 		ObjectOutputStream os2 = new ObjectOutputStream(file2);
 		os2.writeObject(treev1c);
 		os1.close();
 		os2.close();
-		//FileInputStream fil = new FileInputStream("Lemmatizer.bin");
-		//ObjectInputStream in = new ObjectInputStream(fil);
-		//System.out.println(in.readLine());
-		//System.out.println(in.readObject());
-		//System.out.println(in.readLine());
-		//System.out.print(in.readObject());
-		//in.close();
 		slem.printstats(buildstartTime,buildendTime);
     }
 }
